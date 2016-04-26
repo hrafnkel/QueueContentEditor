@@ -63,14 +63,7 @@ namespace Repository.Queue
 
 			string path = @".\private$\" + qName;
 
-			if (!MessageQueue.Exists(path))
-			{
-				mq = MessageQueue.Create(path, false);
-			}
-			else
-			{
-				mq = new MessageQueue(path);
-			}
+			mq = !MessageQueue.Exists(path) ? MessageQueue.Create(path, false) : new MessageQueue(path);
 			mq.Label = qName;
 			mq.MessageReadPropertyFilter.SetAll();
 			mq.DefaultPropertiesToSend.Recoverable = true;
