@@ -20,14 +20,14 @@ namespace QueueContentEditor.Tests
 		public void An_Error_Queue_List_Is_Returned()
 		{
 			List<string> queueList = _repository.GetErrorQueues();
-			Assert.That(queueList.Count(), Is.EqualTo(1));
+			Assert.That(queueList.Count, Is.EqualTo(1));
 		}
 
 		[Test]
 		public void An_Input_Queue_List_Is_Returned()
 		{
 			List<string> queueList = _repository.GetInputQueues();
-			Assert.That(queueList.Count(), Is.EqualTo(3));
+			Assert.That(queueList.Count, Is.EqualTo(3));
 		}
 
 		[Test]
