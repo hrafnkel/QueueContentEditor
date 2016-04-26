@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using System.Messaging;
 using NUnit.Framework;
 using Repository.Queue;
@@ -10,10 +9,14 @@ namespace QueueContentEditor.Tests
     public class QueueHelperTests
     {
 		readonly QueueRepository _repository = new QueueRepository();
-		
+		private string _inputQueueName = "InputQueue";
+		private MessageQueue _mq;
+
 		[SetUp]
 		public void SetUp()
 		{
+			_mq = _repository.GetMessageQueue(_inputQueueName);
+			DeleteAllMessagesFromQueue();
 		}
 
 		[Test]
@@ -33,10 +36,50 @@ namespace QueueContentEditor.Tests
 		[Test]
 		public void Message_Queue_Is_Returned()
 		{
-			string name = "InputQueue";
 			string expected = "private$\\InputQueue";
-            MessageQueue mq = _repository.GetMessageQueue(name);
+            MessageQueue mq = _repository.GetMessageQueue(_inputQueueName);
 			Assert.That(mq.QueueName, Is.EqualTo(expected));
+		}
+
+		[Test]
+		public void A_Message_Is_Written_To_The_Queue()
+		{
+			WriteXmlToQueue();
+			int depth = _repository.GetQueueDepth(_mq);
+			Assert.That(depth, Is.EqualTo(1));
+		}
+
+		[Test]
+		public void The_Queue_Is_Emptied()
+		{
+			const int howMany = 10;
+			WriteManyToQueue(howMany);
+			int depth = _repository.GetQueueDepth(_mq);
+			Assert.That(depth, Is.EqualTo(howMany));
+
+			DeleteAllMessagesFromQueue();
+			depth = _repository.GetQueueDepth(_mq);
+			Assert.That(depth, Is.EqualTo(0));
+		}
+
+		private void WriteManyToQueue(int i)
+		{
+			for (int j = 0; j < i; j++)
+			{
+				WriteXmlToQueue();
+			}
+		}
+
+		private void WriteXmlToQueue()
+		{
+			string xmlText = @"<p>Blah</p>";
+			Message message = new Message(xmlText, new XmlMessageFormatter());
+			_repository.WriteXmlMessageOnQueue(_mq, message);
+		}
+
+		private void DeleteAllMessagesFromQueue()
+		{
+			_repository.DeleteAllMessagesFromQueue(_mq);
 		}
 	}
 }

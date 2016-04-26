@@ -85,5 +85,20 @@ namespace Repository.Queue
 			}
 			return messages;
 		}
+
+	    public int GetQueueDepth(MessageQueue mq)
+	    {
+			int count = 0;
+			var enumerator = mq.GetMessageEnumerator2();
+			while (enumerator.MoveNext())
+				count++;
+
+			return count;
+		}
+
+	    public void DeleteAllMessagesFromQueue(MessageQueue mq)
+	    {
+		    mq.Purge();
+	    }
 	}
 }
