@@ -13,7 +13,7 @@ namespace Repository.Queue
 		void WriteXmlMessageOnQueue(MessageQueue mq, Message message);
 		void DeleteMessageById(MessageQueue mq, string messageId);
 		MessageQueue GetQueueCreateIfNeeded(string qName);
-		List<Message> ReadAllXmlMessageFromQueueLeavingMessageOnQueue(MessageQueue mq, int timeout);
+		List<Message> ReadAllXmlMessageFromQueueLeavingMessageOnQueue(MessageQueue mq);
 
 	}
 }
