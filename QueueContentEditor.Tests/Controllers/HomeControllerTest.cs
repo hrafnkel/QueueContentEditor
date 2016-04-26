@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Web.Mvc;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using QueueContentEditor;
-using QueueContentEditor.Controllers;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace QueueContentEditor.Tests.Controllers
 {
