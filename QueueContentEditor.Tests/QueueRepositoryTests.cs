@@ -6,7 +6,7 @@ using Repository.Queue;
 namespace QueueContentEditor.Tests
 {
 	[TestFixture]
-    public class QueueHelperTests
+    public class QueueRepositoryTests
     {
 		readonly QueueRepository _repository = new QueueRepository();
 		private string _inputQueueName = "InputQueue";
