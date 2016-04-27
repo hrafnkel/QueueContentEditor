@@ -1,22 +1,23 @@
-﻿using System.Messaging;
+﻿using System;
+using System.Linq;
+using System.Messaging;
 using System.Web.Mvc;
 using System.Windows.Forms;
 using QueueContentEditor.Helpers;
-using Repository.Queue;
 using Message = System.Messaging.Message;
 
 namespace QueueContentEditor.Models
 {
 	public class QueueEditorViewModel
 	{
-		readonly QueueHelper _queueHelper = new QueueHelper(new QueueRepository());
-		readonly VisibilityHelper _visibility = new VisibilityHelper();
-
 		public QueueEditorModel Editor { get; set; }
 		public VisibilityModel Visibility { get; private set; }
 
 		[HiddenInput(DisplayValue = false)]
 		public string EventCommand { get; set; }
+
+		private static readonly bool IsRunningFromNUnit = AppDomain.CurrentDomain.GetAssemblies().Any(
+			a => a.FullName.ToLowerInvariant().StartsWith("nunit.framework"));
 
 		private static MessageQueue ErrorQueue { get; set; }
 		private static MessageQueue NewQueue { get; set; }
@@ -28,8 +29,14 @@ namespace QueueContentEditor.Models
 		private static string EditedMessageBody { get; set; }
 		private static string MsgId { get; set; }
 
-		public QueueEditorViewModel()
+		private readonly IQueueHelper _queueHelper;
+		private readonly IVisibilityHelper _visibility;
+
+		public QueueEditorViewModel(IQueueHelper queueHelper, IVisibilityHelper visibility)
 		{
+			_queueHelper = queueHelper;
+			_visibility = visibility;
+			Selected = string.Empty;
 			Editor = new QueueEditorModel();
 			EventCommand = "Reset";
 		}
@@ -48,13 +55,14 @@ namespace QueueContentEditor.Models
 
 		private void GetSelectedErrorQueue()
 		{
-			if (_queueHelper.ValidSelection(Selected))
+			bool validSelection = _queueHelper.ValidSelection(Selected);
+			if (validSelection)
 			{
 				ErrorQueue = _queueHelper.GetMessageQueue(Selected);
 				Visibility = _visibility.SetSelectMessageVisibility();
 				Editor.MessageLabels = _queueHelper.GetListOfMessageLabelsFromErrorQueue(ErrorQueue);
 				if (Editor.MessageLabels.Count != 0) return;
-				MessageBox.Show("There are no messages in the queue.", "Empty", MessageBoxButtons.OK);
+				if (!IsRunningFromNUnit) MessageBox.Show("There are no messages in the queue.", "Empty", MessageBoxButtons.OK);
 			}
 			Reset();
 		}
@@ -90,7 +98,7 @@ namespace QueueContentEditor.Models
 				_queueHelper.WriteXmlMessageOnQueue(NewQueue, message);
 				_queueHelper.DeleteMessageById(ErrorQueue, MsgId);
 				var text = $"Message Posted To Queue";
-				MessageBox.Show(text, "Invalid Selection", MessageBoxButtons.OK);
+				if (!IsRunningFromNUnit) MessageBox.Show(text, "Invalid Selection", MessageBoxButtons.OK);
 			}
 		}
 		

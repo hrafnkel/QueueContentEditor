@@ -13,7 +13,7 @@ namespace QueueContentEditor.Helpers
 	{
 		private readonly IQueueRepository _queueRepository;
 
-		public static readonly bool IsRunningFromNUnit = AppDomain.CurrentDomain.GetAssemblies().Any(
+		private static readonly bool IsRunningFromNUnit = AppDomain.CurrentDomain.GetAssemblies().Any(
 			a => a.FullName.ToLowerInvariant().StartsWith("nunit.framework"));
 
 		public QueueHelper(IQueueRepository queueRepository)
