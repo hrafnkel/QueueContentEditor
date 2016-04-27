@@ -62,9 +62,9 @@ namespace QueueContentEditor.Tests
 			Assert.That(actual, Is.EqualTo(expected));
 		}
 
-		[TestCase("Fred", true)]
-		[TestCase("-- Select --", false)]
-		[TestCase("", false)]
+		[TestCase("Fred", true, TestName = "Valid name")]
+		[TestCase("-- Select --", false, TestName = "Invalid name")]
+		[TestCase("", false, TestName = "Missing name")]
 		public void Selection_Is_Validated(string selected, bool expected)
 		{
 			bool result = _helper.ValidSelection(selected);
