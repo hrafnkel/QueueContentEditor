@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Messaging;
 using System.Windows.Forms;
@@ -35,10 +36,19 @@ namespace QueueContentEditor.Helpers
 		{
 			try
 			{
-				var bodyLength = (int)msg.BodyStream.Length;
-				byte[] messageBytes = new byte[bodyLength];
-				msg.BodyStream.Read(messageBytes, 0, bodyLength);
-				return System.Text.Encoding.UTF8.GetString(messageBytes);
+				long len = msg.BodyStream.Length;
+				byte[] buffer = new byte[len];
+
+				using (MemoryStream ms = new MemoryStream())
+				{
+					int read;
+					while ((read = msg.BodyStream.Read(buffer, 0, buffer.Length)) > 0)
+					{
+						ms.Write(buffer, 0, read);
+					}
+					
+					return System.Text.Encoding.UTF8.GetString(ms.ToArray());
+				}
 			}
 			catch (NullReferenceException)
 			{
@@ -87,6 +97,11 @@ namespace QueueContentEditor.Helpers
 		public void DeleteMessageById(MessageQueue mq, string messageId)
 		{
 			_queueRepository.DeleteMessageById(mq, messageId);
+		}
+
+		public List<MessageQueue> GetAllPrivateQueues()
+		{
+			return _queueRepository.GetAllPrivateQueues();
 		}
 	}
 }

@@ -1,21 +1,19 @@
 ﻿using QueueContentEditor.Models;
 using System.Web.Mvc;
 using QueueContentEditor.Helpers;
+using Repository.Queue;
 
 namespace QueueContentEditor.Controllers
 {
     public class HomeController : Controller
     {
-	    private IQueueHelper _queueHelper;
-	    private IVisibilityHelper _visibilityHelper;
+	    
+	    private readonly IVisibilityHelper _visibilityHelper = new VisibilityHelper();
+		private static readonly IQueueRepository QueueRepository = new QueueRepository();
+		private readonly IQueueHelper _queueHelper = new QueueHelper(QueueRepository);
 
-	    public HomeController(IQueueHelper queueHelper, IVisibilityHelper visibilityHelper)
-	    {
-		    _queueHelper = queueHelper;
-		    _visibilityHelper = visibilityHelper;
-	    }
 
-	    public ActionResult Index()
+		public ActionResult Index()
 		{
 			var vm = new QueueEditorViewModel(_queueHelper, _visibilityHelper);
 			vm.HandleRequest();

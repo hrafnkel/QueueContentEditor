@@ -26,6 +26,12 @@ namespace Repository.Queue
 			return inputQueueList;
 		}
 
+	    public List<MessageQueue> GetAllPrivateQueues()
+	    {
+		    string machineName = Environment.MachineName;
+		    return MessageQueue.GetPrivateQueuesByMachine(machineName).ToList();
+		}
+
 	    public MessageQueue GetMessageQueue(string queueName)
 	    {
 		    return GetQueueCreateIfNeeded(queueName);
