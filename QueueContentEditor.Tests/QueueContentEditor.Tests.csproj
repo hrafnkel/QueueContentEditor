@@ -95,6 +95,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Controllers\HomeControllerTest.cs" />
     <Compile Include="QueueEditorViewModelTests.cs" />
+    <Compile Include="QueueWrapperTests.cs" />
     <Compile Include="VisibilityHelperTests.cs" />
   </ItemGroup>
   <ItemGroup>
