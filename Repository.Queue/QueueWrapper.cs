@@ -34,20 +34,26 @@ namespace Repository.Queue
 
 		public ReceiveResponse<T> ReceiveTransactional()
 		{
-			MessageQueueTransaction myTransaction = new MessageQueueTransaction();
+			if (_messageQueue.Transactional)
+			{
+				return new ReceiveResponse<T>(true, default(T), "Error: Queue is not transactional type");
+			}
+
 			try
 			{
-				myTransaction.Begin();
-				Message message = _messageQueue.Receive(TimeSpan.FromSeconds(5), myTransaction);
+				Message message = _messageQueue.Receive(TimeSpan.FromSeconds(5), MessageQueueTransactionType.Automatic);
 				ReceiveResponse<T> response = new ReceiveResponse<T>(false, (T)message.Body, message.Label);
-				myTransaction.Commit();
 				return response;
 			}
 			catch (MessageQueueException e)
 			{
 				if (e.MessageQueueErrorCode == MessageQueueErrorCode.IOTimeout)
 				{
-					return new ReceiveResponse<T>(true, default(T), "Error");
+					return new ReceiveResponse<T>(true, default(T), "Error: Timeout");
+				}
+				if (e.MessageQueueErrorCode == MessageQueueErrorCode.TransactionUsage)
+				{
+					return new ReceiveResponse<T>(true, default(T), "Error: Transaction Usage");
 				}
 				throw;
 			}
@@ -73,6 +79,27 @@ namespace Repository.Queue
 				MessageQueueTransaction myTransaction = new MessageQueueTransaction();
 				myTransaction.Begin();
 				_messageQueue.Send(payload, lablel, myTransaction);
+				myTransaction.Commit();
+				return true;
+			}
+			catch (Exception)
+			{
+				return false;
+			}
+		}
+
+		public bool SendBatchTransactional(List<T> payloads, string lablel)
+		{
+			try
+			{
+				MessageQueueTransaction myTransaction = new MessageQueueTransaction();
+				myTransaction.Begin();
+
+				foreach (T payload in payloads)
+				{
+					_messageQueue.Send(payload, lablel, myTransaction);
+				}
+
 				myTransaction.Commit();
 				return true;
 			}

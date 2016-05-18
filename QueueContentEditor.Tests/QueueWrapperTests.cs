@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.Messaging;
-using System.Text;
-using System.Threading.Tasks;
 using NUnit.Framework;
 using Repository.Queue;
 using Repository.Queue.Models;
@@ -90,10 +87,9 @@ namespace QueueContentEditor.Tests
 			Assert.That(depth, Is.EqualTo(0));
 
 			var wasSent = _intQueueWrapper.Send(1234, label);
+			depth = _repository.GetQueueDepth(_mq);
 
 			Assert.True(wasSent);
-
-			depth = _repository.GetQueueDepth(_mq);
 			Assert.That(depth, Is.EqualTo(1));
 		}
 
@@ -108,18 +104,84 @@ namespace QueueContentEditor.Tests
 		[Test]
 		public void A_Message_Received_From_A_Queue_In_A_Transaction()
 		{
-			string payload = "Payload";
+			string payload = "Payload 0";
+			string label = "Label 0";
 			DeleteAllMessagesFromQueue();
-			bool wasSent = _textQueueWrapper.SendTransactional(payload, "Label");
+			WriteManyToQueue(1);
 			ReceiveResponse<string> result = _textQueueWrapper.ReceiveTransactional();
-			Assert.True(wasSent);
+			Assert.That(result.Label, Is.EqualTo(label));
 			Assert.That(result.Payload, Is.EqualTo(payload));
 		}
 
+		[Test, Explicit]
+		public void Write_One_Million()
+		{
+			int target = 1000000;
+			var sw = Stopwatch.StartNew();
+			WriteManyToQueue(target);
+			sw.Stop();
+			var elapsed = sw.ElapsedMilliseconds;
+			Debug.WriteLine($"{elapsed} ms");
+			DeleteAllMessagesFromQueue();
+		}
+
+		[Test, Explicit]
+		public void Read_One_Million()
+		{
+			int target = 1000000;
+			WriteManyToQueue(target);
+			var sw = Stopwatch.StartNew();
+			List<ReceiveResponse<string>> responses = ReadManyStringFromQueue(1000000);
+			sw.Stop();
+			var elapsed = sw.ElapsedMilliseconds;
+			Debug.WriteLine($"{elapsed} ms");
+			Assert.That(responses.Count,Is.EqualTo(target));
+		}
+
+		[Test]
+		public void A_List_Of_String_Messages_Is_Sent()
+		{
+			string label = "Transaction group messages";
+			List<string> payloadList = new List<string> {"p1","p2"};
+			bool wasSent = _textQueueWrapper.SendBatchTransactional(payloadList, label);
+			Assert.True(wasSent);
+		}
+
+		[Test]
+		public void A_List_Of_Integer_Messages_Is_Sent()
+		{
+			string label = "Transaction group messages";
+			List<int> payloadList = new List<int> { 1,2,3,4 };
+			bool wasSent = _intQueueWrapper.SendBatchTransactional(payloadList, label);
+			Assert.True(wasSent);
+		}
+
+		private List<ReceiveResponse<string>> ReadManyStringFromQueue(int i)
+		{
+			List<ReceiveResponse<string>> responses = new List<ReceiveResponse<string>>();
+
+			for (int j = 0; j < i; j++)
+			{
+				ReceiveResponse<string> r = _textQueueWrapper.Receive();
+				responses.Add(r);
+			}
+
+			return responses;
+		}
+		
 		private void DeleteAllMessagesFromQueue()
 		{
 			_repository.DeleteAllMessagesFromQueue(_mq);
 
 		}
+
+		private void WriteManyToQueue(int i)
+		{
+			for (int j = 0; j < i; j++)
+			{
+				_textQueueWrapper.Send($"Payload {j}", $"Label {j}");
+			}
+		}
+		
 	}
 }
