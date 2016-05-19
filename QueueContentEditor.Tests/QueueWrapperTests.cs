@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Messaging;
 using NUnit.Framework;
 using Repository.Queue;
@@ -7,12 +8,9 @@ using Repository.Queue.Models;
 
 namespace QueueContentEditor.Tests
 {
-	
-
 	[TestFixture]
 	public class QueueWrapperTests
 	{
-		readonly QueueRepository _repository = new QueueRepository();
 		private string _inputQueueName = "InputQueue";
 		private static MessageQueue _mq;
 		private QueueWrapper<string> _textQueueWrapper;
@@ -21,10 +19,10 @@ namespace QueueContentEditor.Tests
 		[SetUp]
 		public void SetUp()
 		{
-			_mq = _repository.GetMessageQueue(_inputQueueName);
+			_mq = GetMessageQueue(_inputQueueName);
 			_textQueueWrapper = new QueueWrapper<string>(_mq);
 			_intQueueWrapper = new QueueWrapper<int>(_mq);
-			DeleteAllMessagesFromQueue();
+			DeleteAllMessagesFromQueues();
 		}
 
 		[Test]
@@ -51,15 +49,14 @@ namespace QueueContentEditor.Tests
 		public void A_Text_Message_Is_Put_On_The_Queue()
 		{
 			string label = string.Empty;
-			DeleteAllMessagesFromQueue();
-			int depth = _repository.GetQueueDepth(_mq);
+			DeleteAllMessagesFromQueues();
+			int depth = _textQueueWrapper.GetQueueDepth();
 			Assert.That(depth, Is.EqualTo(0));
 
-			var wasSent = _textQueueWrapper.Send("Payload", label);
-
+			bool wasSent = _textQueueWrapper.Send("Payload", label);
 			Assert.True(wasSent);
 
-			depth = _repository.GetQueueDepth(_mq);
+			depth = _textQueueWrapper.GetQueueDepth();
 			Assert.That(depth, Is.EqualTo(1));
 		}
 
@@ -67,14 +64,14 @@ namespace QueueContentEditor.Tests
 		public void A_Message_Put_On_The_Queue_Wth_Null_Label_Is_Not_Sent()
 		{
 			string label = null;
-			DeleteAllMessagesFromQueue();
-			int depth = _repository.GetQueueDepth(_mq);
+			DeleteAllMessagesFromQueues();
+			int depth = _textQueueWrapper.GetQueueDepth();
 			Assert.That(depth, Is.EqualTo(0));
 
-			var wasSent = _textQueueWrapper.Send("Payload", label);
-
+			bool wasSent = _textQueueWrapper.Send("Payload", label);
 			Assert.False(wasSent);
-			depth = _repository.GetQueueDepth(_mq);
+
+			depth = _intQueueWrapper.GetQueueDepth();
 			Assert.That(depth, Is.EqualTo(0));
 		}
 
@@ -82,21 +79,21 @@ namespace QueueContentEditor.Tests
 		public void An_Integer_Message_Is_Put_On_The_Queue()
 		{
 			string label = "Number";
-			DeleteAllMessagesFromQueue();
-			int depth = _repository.GetQueueDepth(_mq);
+			DeleteAllMessagesFromQueues();
+			int depth = _intQueueWrapper.GetQueueDepth();
 			Assert.That(depth, Is.EqualTo(0));
 
-			var wasSent = _intQueueWrapper.Send(1234, label);
-			depth = _repository.GetQueueDepth(_mq);
-
+			bool wasSent = _intQueueWrapper.Send(1234, label);
 			Assert.True(wasSent);
+
+			depth = _intQueueWrapper.GetQueueDepth();
 			Assert.That(depth, Is.EqualTo(1));
 		}
 
 		[Test]
 		public void A_Message_Put_On_A_Queue_In_A_Transaction()
 		{
-			DeleteAllMessagesFromQueue();
+			DeleteAllMessagesFromQueues();
 			bool wasSent = _textQueueWrapper.SendTransactional("Payload", "Label");
 			Assert.True(wasSent);
 		}
@@ -106,7 +103,7 @@ namespace QueueContentEditor.Tests
 		{
 			string payload = "Payload 0";
 			string label = "Label 0";
-			DeleteAllMessagesFromQueue();
+			DeleteAllMessagesFromQueues();
 			WriteManyToQueue(1);
 			ReceiveResponse<string> result = _textQueueWrapper.ReceiveTransactional();
 			Assert.That(result.Label, Is.EqualTo(label));
@@ -117,12 +114,12 @@ namespace QueueContentEditor.Tests
 		public void Write_One_Million()
 		{
 			int target = 1000000;
-			var sw = Stopwatch.StartNew();
+			Stopwatch sw = Stopwatch.StartNew();
 			WriteManyToQueue(target);
 			sw.Stop();
-			var elapsed = sw.ElapsedMilliseconds;
+			long elapsed = sw.ElapsedMilliseconds;
 			Debug.WriteLine($"{elapsed} ms");
-			DeleteAllMessagesFromQueue();
+			DeleteAllMessagesFromQueues();
 		}
 
 		[Test, Explicit]
@@ -130,10 +127,10 @@ namespace QueueContentEditor.Tests
 		{
 			int target = 1000000;
 			WriteManyToQueue(target);
-			var sw = Stopwatch.StartNew();
+			Stopwatch sw = Stopwatch.StartNew();
 			List<ReceiveResponse<string>> responses = ReadManyStringFromQueue(1000000);
 			sw.Stop();
-			var elapsed = sw.ElapsedMilliseconds;
+			long elapsed = sw.ElapsedMilliseconds;
 			Debug.WriteLine($"{elapsed} ms");
 			Assert.That(responses.Count,Is.EqualTo(target));
 		}
@@ -156,6 +153,36 @@ namespace QueueContentEditor.Tests
 			Assert.True(wasSent);
 		}
 
+		[Test]
+		public void All_Messages_Are_Read_Non_Destrictively()
+		{
+			int numberOfMessages = 2;
+			int timeoutSeconds = 5;
+			WriteManyToQueue(numberOfMessages);
+			List<string> payloads = _textQueueWrapper.PeekAllMessagePayloads(timeoutSeconds);
+			int numberOfPayloads = payloads.Count;
+			Assert.That(numberOfPayloads, Is.EqualTo(numberOfMessages));
+		}
+
+		[Test]
+		public void A_Message_Is_Deleted_By_Id()
+		{
+			int numberOfMessages = 1;
+			WriteManyToQueue(numberOfMessages);
+			int queueDepth = _textQueueWrapper.GetQueueDepth();
+			Assert.That(queueDepth, Is.EqualTo(numberOfMessages));
+
+			List<ReceiveResponse<string>> responses = _textQueueWrapper.PeekAllMessages(5);
+			ReceiveResponse<string> response = responses.First();
+			string id = response.Id;
+
+			ReceiveResponse<string> receiveById = _textQueueWrapper.ReceiveById(id);
+			Assert.That(receiveById.Id, Is.EqualTo(id));
+
+			queueDepth = _textQueueWrapper.GetQueueDepth();
+			Assert.That(queueDepth, Is.LessThan(numberOfMessages));
+		}
+
 		private List<ReceiveResponse<string>> ReadManyStringFromQueue(int i)
 		{
 			List<ReceiveResponse<string>> responses = new List<ReceiveResponse<string>>();
@@ -169,10 +196,10 @@ namespace QueueContentEditor.Tests
 			return responses;
 		}
 		
-		private void DeleteAllMessagesFromQueue()
+		private void DeleteAllMessagesFromQueues()
 		{
-			_repository.DeleteAllMessagesFromQueue(_mq);
-
+			_textQueueWrapper.DeleteAllMessagesFromQueue();
+			_intQueueWrapper.DeleteAllMessagesFromQueue();
 		}
 
 		private void WriteManyToQueue(int i)
@@ -183,5 +210,23 @@ namespace QueueContentEditor.Tests
 			}
 		}
 		
+		private MessageQueue GetMessageQueue(string queueName)
+		{
+			return GetQueueCreateIfNeeded(queueName);
+		}
+
+		private MessageQueue GetQueueCreateIfNeeded(string qName)
+		{
+			MessageQueue mq = null;
+			if (string.IsNullOrEmpty(qName)) return null;
+
+			string path = @".\private$\" + qName;
+
+			mq = !MessageQueue.Exists(path) ? MessageQueue.Create(path, false) : new MessageQueue(path);
+			mq.Label = qName;
+			mq.MessageReadPropertyFilter.SetAll();
+			mq.DefaultPropertiesToSend.Recoverable = true;
+			return mq;
+		}
 	}
 }
