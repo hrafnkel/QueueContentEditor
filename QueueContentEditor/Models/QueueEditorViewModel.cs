@@ -24,6 +24,7 @@ namespace QueueContentEditor.Models
 		private static MessageQueue NewQueue { get; set; }
 		private static Message Msg { get; set; }
 
+		// ReSharper disable once AutoPropertyCanBeMadeGetOnly.Global
 		public string Selected { get; set; }
 		public string MessageBody { get; private set; }
 
@@ -32,16 +33,7 @@ namespace QueueContentEditor.Models
 
 		private readonly IQueueHelper _queueHelper;
 		private readonly IVisibilityHelper _visibility;
-
-		//public QueueEditorViewModel(IQueueHelper queueHelper, IVisibilityHelper visibility)
-		//{
-		//	_queueHelper = queueHelper;
-		//	_visibility = visibility;
-		//	Selected = string.Empty;
-		//	Editor = new QueueEditorModel();
-		//	EventCommand = "Reset";
-		//}
-
+		
 		public QueueEditorViewModel()
 		{
 			_queueHelper = new QueueHelper(new QueueRepository());
