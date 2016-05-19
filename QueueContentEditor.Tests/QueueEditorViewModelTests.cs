@@ -19,7 +19,8 @@ namespace QueueContentEditor.Tests
 		{
 			_queueHelperMock = new Mock<IQueueHelper>();
 			_visibilityHelperMock = new Mock<IVisibilityHelper>();
-			_vm = new QueueEditorViewModel(_queueHelperMock.Object, _visibilityHelperMock.Object);
+			//_vm = new QueueEditorViewModel(_queueHelperMock.Object, _visibilityHelperMock.Object);
+			_vm = new QueueEditorViewModel();
 		}
 
 		[Test]

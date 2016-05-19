@@ -8,14 +8,15 @@ namespace QueueContentEditor.Controllers
     public class HomeController : Controller
     {
 	    
-	    private readonly IVisibilityHelper _visibilityHelper = new VisibilityHelper();
-		private static readonly IQueueRepository QueueRepository = new QueueRepository();
-		private readonly IQueueHelper _queueHelper = new QueueHelper(QueueRepository);
+	 //   private readonly IVisibilityHelper _visibilityHelper = new VisibilityHelper();
+		//private static readonly IQueueRepository QueueRepository = new QueueRepository();
+		//private readonly IQueueHelper _queueHelper = new QueueHelper(QueueRepository);
 
 
 		public ActionResult Index()
 		{
-			var vm = new QueueEditorViewModel(_queueHelper, _visibilityHelper);
+			//			var vm = new QueueEditorViewModel(_queueHelper, _visibilityHelper);
+			var vm = new QueueEditorViewModel();
 			vm.HandleRequest();
             return View(vm);
 		}

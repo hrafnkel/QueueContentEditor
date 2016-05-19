@@ -4,6 +4,7 @@ using System.Messaging;
 using System.Web.Mvc;
 using System.Windows.Forms;
 using QueueContentEditor.Helpers;
+using Repository.Queue;
 using Message = System.Messaging.Message;
 
 namespace QueueContentEditor.Models
@@ -23,7 +24,7 @@ namespace QueueContentEditor.Models
 		private static MessageQueue NewQueue { get; set; }
 		private static Message Msg { get; set; }
 
-		private string Selected { get; set; }
+		public string Selected { get; set; }
 		public string MessageBody { get; private set; }
 
 		private static string EditedMessageBody { get; set; }
@@ -32,10 +33,19 @@ namespace QueueContentEditor.Models
 		private readonly IQueueHelper _queueHelper;
 		private readonly IVisibilityHelper _visibility;
 
-		public QueueEditorViewModel(IQueueHelper queueHelper, IVisibilityHelper visibility)
+		//public QueueEditorViewModel(IQueueHelper queueHelper, IVisibilityHelper visibility)
+		//{
+		//	_queueHelper = queueHelper;
+		//	_visibility = visibility;
+		//	Selected = string.Empty;
+		//	Editor = new QueueEditorModel();
+		//	EventCommand = "Reset";
+		//}
+
+		public QueueEditorViewModel()
 		{
-			_queueHelper = queueHelper;
-			_visibility = visibility;
+			_queueHelper = new QueueHelper(new QueueRepository());
+			_visibility = new VisibilityHelper();
 			Selected = string.Empty;
 			Editor = new QueueEditorModel();
 			EventCommand = "Reset";
