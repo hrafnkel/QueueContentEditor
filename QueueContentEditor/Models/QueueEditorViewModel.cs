@@ -25,6 +25,7 @@ namespace QueueContentEditor.Models
 		private static Message Msg { get; set; }
 
 		// ReSharper disable once AutoPropertyCanBeMadeGetOnly.Global
+	    // ReSharper disable once MemberCanBePrivate.Global
 		public string Selected { get; set; }
 		public string MessageBody { get; private set; }
 
@@ -58,15 +59,19 @@ namespace QueueContentEditor.Models
 		private void GetSelectedErrorQueue()
 		{
 			bool validSelection = _queueHelper.ValidSelection(Selected);
-			if (validSelection)
-			{
-				ErrorQueue = _queueHelper.GetMessageQueue(Selected);
-				Visibility = _visibility.SetSelectMessageVisibility();
-				Editor.MessageLabels = _queueHelper.GetListOfMessageLabelsFromErrorQueue(ErrorQueue);
-				if (Editor.MessageLabels.Count != 0) return;
-				if (!IsRunningFromNUnit) MessageBox.Show("There are no messages in the queue.", "Empty", MessageBoxButtons.OK);
-			}
-			Reset();
+		    if (validSelection)
+		    {
+		        ErrorQueue = _queueHelper.GetMessageQueue(Selected);
+		        Visibility = _visibility.SetSelectMessageVisibility();
+		        Editor.MessageLabels = _queueHelper.GetListOfMessageLabelsFromErrorQueue(ErrorQueue);
+		        if (Editor.MessageLabels.Count != 0) return;
+		        if (!IsRunningFromNUnit)
+		            MessageBox.Show("There are no messages in the queue.", "Empty", MessageBoxButtons.OK);
+		    }
+		    else
+		    {
+		        Reset();
+		    }
 		}
 
 		private void GetSelectedMessage()

@@ -165,6 +165,9 @@
     <Content Include="Scripts\respond.js" />
     <Content Include="Scripts\respond.min.js" />
     <Content Include="Scripts\_references.js" />
+    <None Include="Views\Home\TreeIndex.cshtml" />
+    <Content Include="Views\Content\tree.css" />
+    <Content Include="Views\Scripts\tree.js" />
     <Content Include="Web.config" />
     <Content Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
