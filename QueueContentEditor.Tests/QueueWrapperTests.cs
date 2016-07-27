@@ -110,7 +110,26 @@ namespace QueueContentEditor.Tests
 			Assert.That(result.Payload, Is.EqualTo(payload));
 		}
 
-		[Test, Explicit]
+        [Test, Explicit]
+        public void Write_Fifty_Thousand_Pause_Then_Read()
+        {
+            int target = 50000;
+            Stopwatch sw = Stopwatch.StartNew();
+            WriteManyToQueue(target);
+            sw.Stop();
+            long elapsed = sw.ElapsedMilliseconds;
+            Debug.WriteLine($"{elapsed} ms");
+
+            System.Threading.Thread.Sleep(10000);
+
+            sw = Stopwatch.StartNew();
+            ReadManyStringFromQueue(target);
+            sw.Stop();
+            elapsed = sw.ElapsedMilliseconds;
+            Debug.WriteLine($"{elapsed} ms");
+        }
+
+        [Test, Explicit]
 		public void Write_One_Million()
 		{
 			int target = 1000000;
@@ -128,7 +147,7 @@ namespace QueueContentEditor.Tests
 			int target = 1000000;
 			WriteManyToQueue(target);
 			Stopwatch sw = Stopwatch.StartNew();
-			List<ReceiveResponse<string>> responses = ReadManyStringFromQueue(1000000);
+			List<ReceiveResponse<string>> responses = ReadManyStringFromQueue(target);
 			sw.Stop();
 			long elapsed = sw.ElapsedMilliseconds;
 			Debug.WriteLine($"{elapsed} ms");
