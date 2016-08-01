@@ -83,14 +83,52 @@ namespace QueueContentEditor.Tests
 		}
 
 	    [Test]
-	    public void On_SelectLabel_Something()
+	    public void On_SelectLabel_With_Empty_Label_Visibility_Is_Undefined()
 	    {
             _vm.Selected = "inputqueue";
             _vm.EventCommand = "selectlabel";
+	        _vm.Label = "";
             _vm.HandleRequest();
+	        SetMessageBodyEditorVisibility();
+
+            Assert.True(QueuesAreSet());
+            Assert.That(GetVisibilitySettingName(), Is.EqualTo("undefined"));
         }
 
-		private bool QueuesAreSet()
+        [Test]
+        public void On_SelectLabel_With_Unknown_Label_Visibility_Is_BodyEditor()
+        {
+            _vm.Selected = "inputqueue";
+            _vm.EventCommand = "selectlabel";
+            _vm.Label = "*%R*&^V(D";
+            _vm.HandleRequest();
+            SetMessageBodyEditorVisibility();
+
+            Assert.True(QueuesAreSet());
+            Assert.That(GetVisibilitySettingName(), Is.EqualTo("messagebodyeditor"));
+        }
+
+        [Test]
+        public void On_SelectLabel_With_Known_Label_Visibility_Is_BodyEditor()
+        {
+            _vm.Selected = "inputqueue";
+            _vm.EventCommand = "selectlabel";
+            _vm.Label = "Label";
+            string text = "Message";
+
+            MessageQueue mq = _helper.GetMessageQueue(_vm.Selected);
+            Message msg = new Message(text,new XmlMessageFormatter());
+            msg.Label = _vm.Label;
+            _helper.WriteXmlMessageOnQueue(mq, msg);
+
+            _vm.HandleRequest();
+            SetMessageBodyEditorVisibility();
+
+            Assert.True(QueuesAreSet());
+            Assert.That(GetVisibilitySettingName(), Is.EqualTo("messagebodyeditor"));
+        }
+
+        private bool QueuesAreSet()
 		{
 			QueueEditorModel qem = _vm.Editor;
 			List<string> errorQueueNames = qem.ErrorQueueNames;

@@ -2,7 +2,6 @@
 using System.IO;
 using System.Messaging;
 using System.Text;
-using System.Xml.Serialization;
 using Moq;
 using NUnit.Framework;
 using QueueContentEditor.Helpers;

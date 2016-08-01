@@ -103,5 +103,10 @@ namespace QueueContentEditor.Helpers
 		{
 			return _queueRepository.GetAllPrivateQueues();
 		}
+
+	    public MessageQueue GetQueueByName(string name)
+	    {
+	        return _queueRepository.GetMessageQueue(name);
+	    }
 	}
 }

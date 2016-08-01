@@ -29,6 +29,8 @@ namespace QueueContentEditor.Models
 		public string Selected { get; set; }
 		public string MessageBody { get; private set; }
 
+        public string Label { get; set; }
+
 		private static string EditedMessageBody { get; set; }
 		private static string MsgId { get; set; }
 
@@ -42,6 +44,7 @@ namespace QueueContentEditor.Models
 			Selected = string.Empty;
 			Editor = new QueueEditorModel();
 			EventCommand = "Reset";
+		    Label = string.Empty;
 		}
 
 		private void Reset()
@@ -76,9 +79,11 @@ namespace QueueContentEditor.Models
 
 		private void GetSelectedMessage()
 		{
-			if (_queueHelper.ValidSelection(Selected))
+		    MessageQueue mq = _queueHelper.GetMessageQueue(Selected);
+
+			if (_queueHelper.ValidSelection(Selected) && (!string.IsNullOrEmpty(Label)))
 			{
-				Msg = _queueHelper.GetMessageByLabel(ErrorQueue, Selected);
+				Msg = _queueHelper.GetMessageByLabel(mq, Label);
 				MsgId = Msg.Id;
 				MessageBody = _queueHelper.ReadMessageBody(Msg);
 				Visibility = _visibility.SetMessageBodyEditorVisibility();
