@@ -117,8 +117,7 @@ namespace QueueContentEditor.Tests
             string text = "Message";
 
             MessageQueue mq = _helper.GetMessageQueue(_vm.Selected);
-            Message msg = new Message(text,new XmlMessageFormatter());
-            msg.Label = _vm.Label;
+            Message msg = new Message(text, new XmlMessageFormatter()) {Label = _vm.Label};
             _helper.WriteXmlMessageOnQueue(mq, msg);
 
             _vm.HandleRequest();

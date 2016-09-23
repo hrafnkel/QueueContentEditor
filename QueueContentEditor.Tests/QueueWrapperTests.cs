@@ -63,7 +63,7 @@ namespace QueueContentEditor.Tests
 		[Test]
 		public void A_Message_Put_On_The_Queue_Wth_Null_Label_Is_Not_Sent()
 		{
-			string label = null;
+			const string label = null;
 			DeleteAllMessagesFromQueues();
 			int depth = _textQueueWrapper.GetQueueDepth();
 			Assert.That(depth, Is.EqualTo(0));
@@ -78,7 +78,7 @@ namespace QueueContentEditor.Tests
 		[Test]
 		public void An_Integer_Message_Is_Put_On_The_Queue()
 		{
-			string label = "Number";
+			const string label = "Number";
 			DeleteAllMessagesFromQueues();
 			int depth = _intQueueWrapper.GetQueueDepth();
 			Assert.That(depth, Is.EqualTo(0));
