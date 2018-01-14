@@ -15,5 +15,6 @@ namespace QueueContentEditor.Helpers
 		Message GetMessageByLabel(MessageQueue mq, string label);
 		void WriteXmlMessageOnQueue(MessageQueue mq, Message message);
 		void DeleteMessageById(MessageQueue mq, string messageId);
+		List<MessageQueue> GetAllPrivateQueues();
 	}
 }

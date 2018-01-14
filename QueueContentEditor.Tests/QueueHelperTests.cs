@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using System.Messaging;
+using System.Text;
 using Moq;
 using NUnit.Framework;
 using QueueContentEditor.Helpers;
@@ -122,6 +124,27 @@ namespace QueueContentEditor.Tests
 			_queueRepositoryMock.Setup(x => x.DeleteMessageById(It.IsAny<MessageQueue>(), It.IsAny<string>()));
 			_helper.DeleteMessageById(mq, msgId);
 			_queueRepositoryMock.Verify(x => x.DeleteMessageById(It.IsAny<MessageQueue>(), It.IsAny<string>()));
+		}
+
+		[Test]
+		public void GetAllPrivateQueues_Is_Called_From_The_Helper()
+		{
+			_queueRepositoryMock.Setup(x => x.GetAllPrivateQueues());
+			_helper.GetAllPrivateQueues();
+			_queueRepositoryMock.Verify(x => x.GetAllPrivateQueues());
+		}
+
+		[Test]
+		public void The_MessageBody_Is_Extracted_From_A_Message()
+		{
+			Message msg = new Message();
+			string bodyText = "streamed body text";
+			byte[] buff = Encoding.UTF8.GetBytes(bodyText);
+			Stream stm = new MemoryStream(buff);
+			msg.BodyStream = stm;
+
+			var result = _helper.ReadMessageBody(msg);
+			Assert.That(result,Is.EqualTo(bodyText));
 		}
 	}
 }

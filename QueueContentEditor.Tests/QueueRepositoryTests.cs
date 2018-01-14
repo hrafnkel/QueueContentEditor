@@ -134,6 +134,14 @@ namespace QueueContentEditor.Tests
 			Assert.False(string.IsNullOrEmpty(message.Id));
 		}
 
+		[Test]
+		public void A_List_Of_Private_Queues_Is_Returned()
+		{
+			List<MessageQueue> queueList = _repository.GetAllPrivateQueues();
+			int numberOfQueues = queueList.Count;
+			Assert.That(numberOfQueues,Is.GreaterThan(0));
+		}
+
 		[TearDown]
 		public void TearDown()
 		{

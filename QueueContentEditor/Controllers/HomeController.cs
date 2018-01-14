@@ -5,14 +5,14 @@ namespace QueueContentEditor.Controllers
 {
     public class HomeController : Controller
     {
-	    public ActionResult Index()
+		public ActionResult Index()
 		{
-			var vm = new QueueEditorViewModel();
+			QueueEditorViewModel vm = new QueueEditorViewModel();
 			vm.HandleRequest();
             return View(vm);
 		}
 
-	    [HttpPost]
+        [HttpPost]
 		[ValidateInput(false)]
 		public ActionResult Index(QueueEditorViewModel vm)
 	    {

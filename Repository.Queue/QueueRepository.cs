@@ -26,6 +26,12 @@ namespace Repository.Queue
 			return inputQueueList;
 		}
 
+	    public List<MessageQueue> GetAllPrivateQueues()
+	    {
+		    string machineName = Environment.MachineName;
+		    return MessageQueue.GetPrivateQueuesByMachine(machineName).ToList();
+		}
+
 	    public MessageQueue GetMessageQueue(string queueName)
 	    {
 		    return GetQueueCreateIfNeeded(queueName);
@@ -40,7 +46,10 @@ namespace Repository.Queue
 	    public Message GetMessageByLabel(MessageQueue mq, string label)
 	    {
 			List<Message> messages = ReadAllXmlMessageFromQueueLeavingMessageOnQueue(mq);
-			return messages.First(message => message.Label == label);
+            if (messages.Count == 0) return new Message();
+
+            Message msg =  messages.First(message => message.Label == label);
+            return msg ?? new Message();
 	    }
 
 		public void WriteXmlMessageOnQueue(MessageQueue mq, Message message)

@@ -14,6 +14,6 @@ namespace Repository.Queue
 		void DeleteMessageById(MessageQueue mq, string messageId);
 		MessageQueue GetQueueCreateIfNeeded(string qName);
 		List<Message> ReadAllXmlMessageFromQueueLeavingMessageOnQueue(MessageQueue mq);
-
+		List<MessageQueue> GetAllPrivateQueues();
 	}
 }

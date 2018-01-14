@@ -1,4 +1,6 @@
-﻿using System.Messaging;
+﻿using System;
+using System.Linq;
+using System.Messaging;
 using System.Web.Mvc;
 using System.Windows.Forms;
 using QueueContentEditor.Helpers;
@@ -9,29 +11,40 @@ namespace QueueContentEditor.Models
 {
 	public class QueueEditorViewModel
 	{
-		readonly QueueHelper _queueHelper = new QueueHelper(new QueueRepository());
-		readonly VisibilityHelper _visibility = new VisibilityHelper();
-
 		public QueueEditorModel Editor { get; set; }
 		public VisibilityModel Visibility { get; private set; }
 
 		[HiddenInput(DisplayValue = false)]
 		public string EventCommand { get; set; }
 
+		private static readonly bool IsRunningFromNUnit = AppDomain.CurrentDomain.GetAssemblies().Any(
+			a => a.FullName.ToLowerInvariant().StartsWith("nunit.framework"));
+
 		private static MessageQueue ErrorQueue { get; set; }
 		private static MessageQueue NewQueue { get; set; }
 		private static Message Msg { get; set; }
 
-		private string Selected { get; set; }
+		// ReSharper disable once AutoPropertyCanBeMadeGetOnly.Global
+	    // ReSharper disable once MemberCanBePrivate.Global
+		public string Selected { get; set; }
 		public string MessageBody { get; private set; }
+
+        public string Label { get; set; }
 
 		private static string EditedMessageBody { get; set; }
 		private static string MsgId { get; set; }
 
+		private readonly IQueueHelper _queueHelper;
+		private readonly IVisibilityHelper _visibility;
+		
 		public QueueEditorViewModel()
 		{
+			_queueHelper = new QueueHelper(new QueueRepository());
+			_visibility = new VisibilityHelper();
+			Selected = string.Empty;
 			Editor = new QueueEditorModel();
 			EventCommand = "Reset";
+		    Label = string.Empty;
 		}
 
 		private void Reset()
@@ -48,22 +61,29 @@ namespace QueueContentEditor.Models
 
 		private void GetSelectedErrorQueue()
 		{
-			if (_queueHelper.ValidSelection(Selected))
-			{
-				ErrorQueue = _queueHelper.GetMessageQueue(Selected);
-				Visibility = _visibility.SetSelectMessageVisibility();
-				Editor.MessageLabels = _queueHelper.GetListOfMessageLabelsFromErrorQueue(ErrorQueue);
-				if (Editor.MessageLabels.Count != 0) return;
-				MessageBox.Show("There are no messages in the queue.", "Empty", MessageBoxButtons.OK);
-			}
-			Reset();
+			bool validSelection = _queueHelper.ValidSelection(Selected);
+		    if (validSelection)
+		    {
+		        ErrorQueue = _queueHelper.GetMessageQueue(Selected);
+		        Visibility = _visibility.SetSelectMessageVisibility();
+		        Editor.MessageLabels = _queueHelper.GetListOfMessageLabelsFromErrorQueue(ErrorQueue);
+		        if (Editor.MessageLabels.Count != 0) return;
+		        if (!IsRunningFromNUnit)
+		            MessageBox.Show("There are no messages in the queue.", "Empty", MessageBoxButtons.OK);
+		    }
+		    else
+		    {
+		        Reset();
+		    }
 		}
 
 		private void GetSelectedMessage()
 		{
-			if (_queueHelper.ValidSelection(Selected))
+		    MessageQueue mq = _queueHelper.GetMessageQueue(Selected);
+
+			if (_queueHelper.ValidSelection(Selected) && (!string.IsNullOrEmpty(Label)))
 			{
-				Msg = _queueHelper.GetMessageByLabel(ErrorQueue, Selected);
+				Msg = _queueHelper.GetMessageByLabel(mq, Label);
 				MsgId = Msg.Id;
 				MessageBody = _queueHelper.ReadMessageBody(Msg);
 				Visibility = _visibility.SetMessageBodyEditorVisibility();
@@ -90,7 +110,7 @@ namespace QueueContentEditor.Models
 				_queueHelper.WriteXmlMessageOnQueue(NewQueue, message);
 				_queueHelper.DeleteMessageById(ErrorQueue, MsgId);
 				var text = $"Message Posted To Queue";
-				MessageBox.Show(text, "Invalid Selection", MessageBoxButtons.OK);
+				if (!IsRunningFromNUnit) MessageBox.Show(text, "Invalid Selection", MessageBoxButtons.OK);
 			}
 		}
 		

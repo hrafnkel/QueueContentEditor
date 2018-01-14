@@ -13,7 +13,7 @@
 		<div class="panel-body">
 			<div class="form-group col-md-4">
 				@Html.LabelFor(m => m.Editor.ErrorQueueNames, "Error Queue")
-				@Html.DropDownList("Selected", new SelectList(Model.Editor.ErrorQueueNames, "Error Queue Name"), "-- Select --", new {@class = "form-control"})
+				@Html.DropDownList("Selected", new SelectList(Model.Editor.ErrorQueueNames,"Error Queue Names"), "-- Select --", new {@class = "form-control"})
 			</div>
 		</div>
 		<div class="panel-footer">
@@ -72,7 +72,6 @@
 			</div>
 			<div class="panel-body">
 				<div class="form-group col-md-4">
-					
 					<textarea autofocus id="EditBody" wrap="soft" rows="4" cols="100" name="Selected" required>@Model.MessageBody</textarea>
 				</div>
 			</div>
