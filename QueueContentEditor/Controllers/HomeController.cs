@@ -1,7 +1,5 @@
 ﻿using QueueContentEditor.Models;
 using System.Web.Mvc;
-using QueueContentEditor.Helpers;
-using Repository.Queue;
 
 namespace QueueContentEditor.Controllers
 {

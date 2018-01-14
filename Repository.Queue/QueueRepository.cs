@@ -33,13 +33,13 @@ namespace Repository.Queue
 
 	    public List<string> GetAllLabelsFromMessageQueue(MessageQueue mq)
 	    {
-		    List<Message> messages = ReadAllXmlMessageFromQueueLeavingMessageOnQueue(mq, 10);
+		    List<Message> messages = ReadAllXmlMessageFromQueueLeavingMessageOnQueue(mq);
 		    return messages.Select(message => message.Label).ToList();
 	    }
 
 	    public Message GetMessageByLabel(MessageQueue mq, string label)
 	    {
-			List<Message> messages = ReadAllXmlMessageFromQueueLeavingMessageOnQueue(mq, 10);
+			List<Message> messages = ReadAllXmlMessageFromQueueLeavingMessageOnQueue(mq);
 			return messages.First(message => message.Label == label);
 	    }
 
@@ -56,41 +56,78 @@ namespace Repository.Queue
 			mq.ReceiveById(messageId);
 		}
 
+		public Message GetMessageById(MessageQueue mq, string messageId)
+		{
+			try
+			{
+				mq.Formatter = new XmlMessageFormatter();
+				return mq.ReceiveById(messageId);
+			}
+			catch (Exception)
+			{
+				return null;
+			}
+		}
+
 		public MessageQueue GetQueueCreateIfNeeded(string qName)
 		{
 			MessageQueue mq = null;
-			if (string.IsNullOrEmpty(qName)) return mq;
+			if (string.IsNullOrEmpty(qName)) return null;
 
 			string path = @".\private$\" + qName;
 
-			if (!MessageQueue.Exists(path))
-			{
-				mq = MessageQueue.Create(path, false);
-			}
-			else
-			{
-				mq = new MessageQueue(path);
-			}
+			mq = !MessageQueue.Exists(path) ? MessageQueue.Create(path, false) : new MessageQueue(path);
 			mq.Label = qName;
 			mq.MessageReadPropertyFilter.SetAll();
 			mq.DefaultPropertiesToSend.Recoverable = true;
 			return mq;
 		}
 
-		public List<Message> ReadAllXmlMessageFromQueueLeavingMessageOnQueue(MessageQueue mq, int timeout)
+		public List<Message> ReadAllXmlMessageFromQueueLeavingMessageOnQueue(MessageQueue mq)
 		{
-			if (!mq.CanRead) return null;
-			mq.Formatter = new XmlMessageFormatter();
-			var messages = new List<Message>();
+			List<Message> messages;
 			try
 			{
+				if (!mq.CanRead) return null;
+				mq.Formatter = new XmlMessageFormatter();
 				messages = mq.GetAllMessages().ToList();
 			}
 			catch (Exception)
 			{
-				
+				return null;
 			}
 			return messages;
 		}
+
+	    public int GetQueueDepth(MessageQueue mq)
+	    {
+			int count = 0;
+			var enumerator = mq.GetMessageEnumerator2();
+			while (enumerator.MoveNext())
+				count++;
+
+			return count;
+		}
+
+	    public void DeleteAllMessagesFromQueue(MessageQueue mq)
+	    {
+		    mq.Purge();
+	    }
+
+	    public string GetNextMessageIdFromQueue(MessageQueue mq, double timeout)
+	    {
+		    Message message;
+			TimeSpan ts = TimeSpan.FromSeconds(timeout);
+		    try
+		    {
+			    message = mq.Peek(timeout: ts);
+			}
+		    catch (MessageQueueException)
+		    {
+				return string.Empty;
+			}
+		    if (message != null) return message.Id;
+		    return string.Empty;
+	    }
 	}
 }

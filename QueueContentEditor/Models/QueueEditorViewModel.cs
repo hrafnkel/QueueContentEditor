@@ -13,17 +13,17 @@ namespace QueueContentEditor.Models
 		readonly VisibilityHelper _visibility = new VisibilityHelper();
 
 		public QueueEditorModel Editor { get; set; }
-		public VisibilityModel Visibility { get; set; }
+		public VisibilityModel Visibility { get; private set; }
 
 		[HiddenInput(DisplayValue = false)]
 		public string EventCommand { get; set; }
 
-		public static MessageQueue ErrorQueue { get; set; }
-		public static MessageQueue NewQueue { get; set; }
-		public static Message Msg { get; set; }
+		private static MessageQueue ErrorQueue { get; set; }
+		private static MessageQueue NewQueue { get; set; }
+		private static Message Msg { get; set; }
 
-		public string Selected { get; set; }
-		public string MessageBody { get; set; }
+		private string Selected { get; set; }
+		public string MessageBody { get; private set; }
 
 		private static string EditedMessageBody { get; set; }
 		private static string MsgId { get; set; }
